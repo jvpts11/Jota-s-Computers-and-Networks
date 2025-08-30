@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "computers_and_networks:block/mainframe_block"
+    }
+  }
+}

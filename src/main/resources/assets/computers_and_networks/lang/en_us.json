@@ -1,0 +1,11 @@
+{
+  "item.computers_and_networks.cpu":"64-bit CPU",
+  "item.computers_and_networks.memory":"Random Access Memory",
+  "item.computers_and_networks.hard_drive": "Hard Drive",
+  "item.computers_and_networks.motherboard": "Motherboard",
+
+  "creativetab.computers_and_networks.components": "C.A.N: Components",
+  "creativetab.computers_and_networks.devices": "C.A.N: Devices",
+
+  "block.computers_and_networks.mainframe_block": "Mainframe"
+}

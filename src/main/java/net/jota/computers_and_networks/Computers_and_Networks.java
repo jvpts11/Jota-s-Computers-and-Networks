@@ -1,5 +1,6 @@
 package net.jota.computers_and_networks;
 
+import net.jota.computers_and_networks.block.ModBlocks;
 import net.jota.computers_and_networks.item.ModCreativeModeTabs;
 import net.jota.computers_and_networks.item.ModItems;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ public class Computers_and_Networks
         ModCreativeModeTabs.register(modEventBus);
 
         ModItems.register(modEventBus);
+        ModBlocks.register(modEventBus);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);

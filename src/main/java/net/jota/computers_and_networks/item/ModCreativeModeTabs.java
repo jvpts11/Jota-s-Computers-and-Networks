@@ -1,6 +1,7 @@
 package net.jota.computers_and_networks.item;
 
 import net.jota.computers_and_networks.Computers_and_Networks;
+import net.jota.computers_and_networks.block.ModBlocks;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -37,7 +38,7 @@ public class ModCreativeModeTabs {
                     .icon(() -> new ItemStack(ModItems.CPU.get()))
                     .title(Component.translatable("creativetab.computers_and_networks.devices"))
                     .displayItems((itemDisplayParameters, output) -> {
-
+                        output.accept(ModBlocks.MAINFRAME_BLOCK);
                     })
                     .build()
     );

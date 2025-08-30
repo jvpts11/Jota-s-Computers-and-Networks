@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "computers_and_networks:mainframe_block"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "computers_and_networks:blocks/mainframe_block"
+}
