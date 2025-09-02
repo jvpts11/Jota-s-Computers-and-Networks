@@ -16,6 +16,9 @@ public class ModItems {
     public static final DeferredItem<Item> MEMORY = ITEMS.register("memory",
             () -> new Item(new Item.Properties()));
 
+    public static final DeferredItem<Item> GPU = ITEMS.register("gpu",
+            () -> new Item(new Item.Properties()));
+
     public static final DeferredItem<Item> HARD_DRIVE = ITEMS.register("hard_drive",
             () -> new Item(new Item.Properties()));
 

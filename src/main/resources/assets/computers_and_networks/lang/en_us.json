@@ -2,6 +2,7 @@
   "item.computers_and_networks.cpu":"64-bit CPU",
   "item.computers_and_networks.memory":"Random Access Memory",
   "item.computers_and_networks.hard_drive": "Hard Drive",
+  "item.computers_and_networks.gpu": "Graphics Processing Unit",
   "item.computers_and_networks.mainframe_motherboard": "Mainframe Motherboard",
   "item.computers_and_networks.server_motherboard": "Server Motherboard",
   "item.computers_and_networks.personal_computer_motherboard": "Personal Computer Motherboard",

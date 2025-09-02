@@ -19,6 +19,7 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.CPU.get());
         basicItem(ModItems.MEMORY.get());
         basicItem(ModItems.HARD_DRIVE.get());
+        basicItem(ModItems.GPU.get());
 
         ModelFile motherboardModel = withExistingParent("motherboard_template", "item/generated")
                 .texture("layer0", modLoc("item/motherboard"));

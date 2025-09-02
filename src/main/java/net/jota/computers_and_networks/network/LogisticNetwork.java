@@ -93,7 +93,7 @@ public class LogisticNetwork {
 
             if (available < requested) {
                 operation.setStatus(OperationStatus.FAILED);
-                operation.setFailureReason("Not enough " + item.getDescription().getString());
+                operation.setFailureReason("Not enough " + getItemName(item));
                 return false;
             }
 
@@ -103,6 +103,14 @@ public class LogisticNetwork {
         }
 
         return buffer.processOperation(operation, this);
+    }
+
+    private String getItemName(Item item) {
+        try {
+            return item.getDescription().getString();
+        } catch (Exception e) {
+            return "Unknown Item";
+        }
     }
 
     private boolean needMultipleSources(Item item, int requestedAmount) {

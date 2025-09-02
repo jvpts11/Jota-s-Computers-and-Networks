@@ -26,6 +26,7 @@ public class ModCreativeModeTabs {
                             output.accept(ModItems.CPU);
                             output.accept(ModItems.MEMORY);
                             output.accept(ModItems.HARD_DRIVE);
+                            output.accept(ModItems.GPU);
                             output.accept(ModItems.MAINFRAME_MOTHERBOARD);
                             output.accept(ModItems.SERVER_MOTHERBOARD);
                             output.accept(ModItems.PERSONAL_COMPUTER_MOTHERBOARD);

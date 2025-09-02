@@ -49,6 +49,20 @@ public class NetworkOperation {
         this.failureReason = reason;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Operation[%s] %s -> %s: %s %s (%s)",
+                id.toString().substring(0, 8),
+                source != null ? source.toString().substring(0, 8) : "NULL",
+                destination != null ? destination.toString().substring(0, 8) : "NULL",
+                resource.getAmount(),
+                getResourceType() == ResourceType.ITEM ?
+                        ((ItemResource) resource).getItem().getDescription().getString() :
+                        ((FluidResource) resource).getFluid().getFluidType().getDescription().getString(),
+                status.getDisplayName()
+        );
+    }
+
     // Getters
     public ResourceType getResourceType() { return resource.getType(); }
     public ItemStack getItem() {

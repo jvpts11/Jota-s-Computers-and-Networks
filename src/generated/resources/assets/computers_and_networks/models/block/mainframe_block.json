@@ -1,6 +1,12 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube",
   "textures": {
-    "all": "computers_and_networks:block/mainframe_block"
+    "down": "computers_and_networks:block/mainframe_block/mainframe_bottom",
+    "east": "computers_and_networks:block/mainframe_block/mainframe_side",
+    "north": "computers_and_networks:block/mainframe_block/mainframe_front",
+    "particle": "computers_and_networks:block/mainframe_block/mainframe_side",
+    "south": "computers_and_networks:block/mainframe_block/mainframe_back",
+    "up": "computers_and_networks:block/mainframe_block/mainframe_top",
+    "west": "computers_and_networks:block/mainframe_block/mainframe_side"
   }
 }
