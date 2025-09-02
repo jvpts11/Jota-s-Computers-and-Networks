@@ -3,35 +3,42 @@ package net.jota.computers_and_networks.network;
 import net.jota.computers_and_networks.network.computers.ServerComputer;
 import net.jota.computers_and_networks.network.enums.OperationStatus;
 import net.jota.computers_and_networks.network.enums.OperationType;
+import net.jota.computers_and_networks.network.enums.ResourceType;
+import net.jota.computers_and_networks.network.network_logic.interfaces.IFluidHandlerDestination;
+import net.jota.computers_and_networks.network.network_logic.interfaces.IFluidHandlerSource;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.*;
 
 public class NetworkBuffer {
-    private final Map<UUID, BufferItem> items;
+    private final Map<UUID, BufferResource> resources;
     private final Queue<NetworkOperation> operationQueue;
-    private int currentTransferRate;
+    private final Map<ResourceType, Integer> transferRates;
 
     public NetworkBuffer() {
-        this.items = new HashMap<>();
+        this.resources = new HashMap<>();
         this.operationQueue = new LinkedList<>();
-        this.currentTransferRate = 0;
+        this.transferRates = new HashMap<>();
+        this.transferRates.put(ResourceType.ITEM, 0);
+        this.transferRates.put(ResourceType.FLUID, 0); // Em mb/tick
     }
 
     public boolean processOperation(NetworkOperation operation, LogisticNetwork network) {
-        if (operation.getType() == OperationType.ITEM_TRANSFER) {
-            operationQueue.add(operation);
-            return true;
-        }
-        return false;
+        operationQueue.add(operation);
+        return true;
     }
 
     public void tick(LogisticNetwork network) {
-        // Processa operações da fila
+        updateTransferRates(network);
         processOperationQueue(network);
-
-        // Processa transferências em andamento
         processActiveTransfers(network);
+        cleanupCompletedTransfers();
+    }
+
+    private void updateTransferRates(LogisticNetwork network) {
+        transferRates.put(ResourceType.ITEM, network.getNetworkTransferRate());
+        transferRates.put(ResourceType.FLUID, network.getFluidTransferRate());
     }
 
     private void processOperationQueue(LogisticNetwork network) {
@@ -51,66 +58,97 @@ public class NetworkBuffer {
     }
 
     private void startTransfer(NetworkOperation operation, LogisticNetwork network) {
-        // Lógica para iniciar transferência
-        BufferItem bufferItem = new BufferItem(
-                operation.getId(),
-                operation.getItem(),
-                operation.getAmount(),
-                operation.getSource(),
-                operation.getDestination()
-        );
-
-        items.put(operation.getId(), bufferItem);
+        BufferResource bufferResource = new BufferResource(operation.getId(), operation.getResource());
+        resources.put(operation.getId(), bufferResource);
         operation.setStatus(OperationStatus.PROCESSING);
     }
 
     private void processActiveTransfers(LogisticNetwork network) {
-        for (BufferItem item : items.values()) {
-            if (item.isUploadComplete()) {
-                processDownload(item, network);
-            } else {
-                processUpload(item, network);
+        for (BufferResource buffer : resources.values()) {
+            if (!buffer.isTransferComplete()) {
+                processTransfer(buffer, network);
             }
         }
     }
 
-    private void processUpload(BufferItem item, LogisticNetwork network) {
-        NetworkComputer sourceComputer = network.getComputers().get(item.getSource());
-        if (sourceComputer == null) return;
+    private void processTransfer(BufferResource buffer, LogisticNetwork network) {
+        ResourceType type = buffer.getResource().getType();
+        int transferRate = transferRates.get(type);
 
-        int uploadSpeed = sourceComputer.getUploadSpeed();
-        int amountToUpload = Math.min(item.getRemainingUpload(), uploadSpeed);
+        switch (type) {
+            case ITEM:
+                processItemTransfer(buffer, network, transferRate);
+                break;
+            case FLUID:
+                processFluidTransfer(buffer, network, transferRate);
+                break;
+        }
+    }
 
-        // Verifica se o servidor tem os itens
-        if (sourceComputer instanceof ServerComputer server) {
-            // Lógica para extrair itens do servidor
-            ItemStack extracted = server.extractItem(0, amountToUpload, true);
-            if (!extracted.isEmpty() && extracted.getCount() >= amountToUpload) {
-                server.extractItem(0, amountToUpload, false);
-                item.upload(amountToUpload);
+    private void processItemTransfer(BufferResource buffer, LogisticNetwork network, int transferRate) {
+        int amountToTransfer = Math.min(buffer.getRemainingAmount(), transferRate);
+
+        NetworkComputer sourceComputer = network.getComputers().get(buffer.getResource().getSource());
+        NetworkComputer destComputer = network.getComputers().get(buffer.getResource().getDestination());
+
+        if (sourceComputer instanceof ServerComputer itemSource &&
+                destComputer instanceof ServerComputer itemDest) {
+
+            ItemStack itemToTransfer = buffer.getItemStack();
+            itemToTransfer.setCount(amountToTransfer);
+
+            ItemStack extracted = itemSource.extractItem(0, amountToTransfer, true);
+            if (!extracted.isEmpty() && extracted.getCount() >= amountToTransfer) {
+                ItemStack remaining = itemDest.insertItem(0, itemToTransfer, true);
+                if (remaining.getCount() < amountToTransfer) {
+                    int actuallyTransferred = amountToTransfer - remaining.getCount();
+
+                    itemSource.extractItem(0, actuallyTransferred, false);
+
+                    ItemStack toInsert = itemToTransfer.copy();
+                    toInsert.setCount(actuallyTransferred);
+                    itemDest.insertItem(0, toInsert, false);
+
+                    buffer.transfer(actuallyTransferred);
+                }
             }
         }
     }
 
-    private void processDownload(BufferItem item, LogisticNetwork network) {
-        if (!item.isUploadComplete()) return;
+    private void cleanupCompletedTransfers() {
+        Iterator<Map.Entry<UUID, BufferResource>> iterator = resources.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, BufferResource> entry = iterator.next();
+            if (entry.getValue().isTransferComplete()) {
+                iterator.remove();
 
-        NetworkComputer destComputer = network.getComputers().get(item.getDestination());
-        if (destComputer == null) return;
+                // TODO: Notify the operation was completed
+                System.out.println("Operation completed: " + entry.getKey());
+            }
+        }
+    }
 
-        int downloadSpeed = destComputer.getDownloadSpeed();
-        int amountToDownload = Math.min(item.getRemainingDownload(), downloadSpeed);
+    private void processFluidTransfer(BufferResource buffer, LogisticNetwork network, int transferRate) {
+        FluidStack fluidToTransfer = buffer.getFluidStack();
+        int amountToTransfer = Math.min(fluidToTransfer.getAmount(), transferRate);
 
-        // Lógica para inserir itens no computador destino
-        if (destComputer instanceof ServerComputer server) {
-            ItemStack toInsert = item.getItem().copy();
-            toInsert.setCount(amountToDownload);
+        NetworkComputer sourceComputer = network.getComputers().get(buffer.getResource().getSource());
+        NetworkComputer destComputer = network.getComputers().get(buffer.getResource().getDestination());
 
-            ItemStack remaining = server.insertItem(0, toInsert, true);
-            if (remaining.getCount() < amountToDownload) {
-                int actuallyInserted = amountToDownload - remaining.getCount();
-                server.insertItem(0, toInsert, false);
-                item.download(actuallyInserted);
+        if (sourceComputer instanceof IFluidHandlerSource fluidSource &&
+                destComputer instanceof IFluidHandlerDestination fluidDest) {
+
+            FluidStack extracted = fluidSource.extractFluid(fluidToTransfer, amountToTransfer, true);
+            if (extracted.getAmount() >= amountToTransfer) {
+                FluidStack remaining = fluidDest.insertFluid(extracted, true);
+                if (remaining.getAmount() < amountToTransfer) {
+                    int actuallyTransferred = amountToTransfer - remaining.getAmount();
+
+                    fluidSource.extractFluid(fluidToTransfer, actuallyTransferred, false);
+                    fluidDest.insertFluid(extracted, false);
+
+                    buffer.transfer(actuallyTransferred);
+                }
             }
         }
     }

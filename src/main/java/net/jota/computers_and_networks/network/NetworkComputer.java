@@ -2,7 +2,8 @@ package net.jota.computers_and_networks.network;
 
 import net.jota.computers_and_networks.block.custom.enums.ComputerType;
 import net.jota.computers_and_networks.item.custom.ComputerComponents;
-import net.jota.computers_and_networks.item.custom.components.HDDComponent;
+import net.jota.computers_and_networks.network.computers.ServerComputer;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.util.UUID;
 
@@ -36,8 +37,34 @@ public abstract class NetworkComputer {
         return components.getTotalGPUMultiplier();
     }
 
-    public int getStorageCapacity() {
-        return components.getTotalHDDCapacity();
+    public int getItemStorageCapacity() {
+        return components.getTotalItemCapacity();
+    }
+
+    public int getFluidStorageCapacity() {
+        return components.getTotalFluidCapacity();
+    }
+
+    public int getUsedItemSlots() {
+        if (this instanceof ServerComputer server) {
+            int used = 0;
+            for (int i = 0; i < server.getSlots(); i++) {
+                if (!server.getStackInSlot(i).isEmpty()) {
+                    used++;
+                }
+            }
+            return used;
+        }
+        return 0;
+    }
+
+    public int getUsedFluidCapacity() {
+        if (this instanceof ServerComputer server) {
+            return server.getFluidTanks().stream()
+                    .mapToInt(FluidTank::getFluidAmount)
+                    .sum();
+        }
+        return 0;
     }
 
     public int getRAMCapacity() {

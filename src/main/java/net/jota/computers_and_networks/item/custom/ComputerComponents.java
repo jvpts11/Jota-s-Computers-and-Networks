@@ -2,7 +2,8 @@ package net.jota.computers_and_networks.item.custom;
 
 import net.jota.computers_and_networks.item.custom.components.*;
 import net.jota.computers_and_networks.item.custom.enums.ComponentType;
-import net.jota.computers_and_networks.item.custom.interfaces.ComputerComponent;
+import net.jota.computers_and_networks.item.custom.interfaces.IComputerComponent;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,16 +14,20 @@ public class ComputerComponents {
     private final List<CPUComponent> cpus;
     private final List<GPUComponent> gpus;
     private final List<RAMComponent> rams;
-    private final List<HDDComponent> hdds;
+    private final List<HDDItemComponent> hddItems;
+    private final List<HDDFluidComponent> hddFluids;
+    private final List<FluidTank> fluidTanks;
 
     public ComputerComponents() {
         this.cpus = new ArrayList<>();
         this.gpus = new ArrayList<>();
         this.rams = new ArrayList<>();
-        this.hdds = new ArrayList<>();
+        this.hddItems = new ArrayList<>();
+        this.hddFluids = new ArrayList<>();
+        this.fluidTanks = new ArrayList<>();
     }
 
-    public boolean addComponent(ComputerComponent component) {
+    public boolean addComponent(IComputerComponent component) {
         if (motherboard == null) return false;
 
         ComponentType type = ComponentType.valueOf(component.getType().toUpperCase());
@@ -46,9 +51,16 @@ public class ComputerComponents {
                     return true;
                 }
                 break;
-            case HDD:
-                if (hdds.size() < motherboard.getTotalSlots(ComponentType.HDD)) {
-                    hdds.add((HDDComponent) component);
+            case HDD_ITEM:
+                if (hddItems.size() < motherboard.getTotalSlots(ComponentType.HDD_ITEM)) {
+                    hddItems.add((HDDItemComponent) component);
+                    return true;
+                }
+                break;
+            case HDD_FLUID:
+                if (hddFluids.size() < motherboard.getTotalSlots(ComponentType.HDD_FLUID)) {
+                    hddFluids.add((HDDFluidComponent) component);
+                    fluidTanks.add(new FluidTank(((HDDFluidComponent) component).getCapacity()));
                     return true;
                 }
                 break;
@@ -80,9 +92,15 @@ public class ComputerComponents {
                 .sum();
     }
 
-    public int getTotalHDDCapacity() {
-        return hdds.stream()
-                .mapToInt(HDDComponent::getCapacity)
+    public int getTotalItemCapacity() {
+        return hddItems.stream()
+                .mapToInt(HDDItemComponent::getCapacity)
+                .sum();
+    }
+
+    public int getTotalFluidCapacity() {
+        return hddFluids.stream()
+                .mapToInt(HDDFluidComponent::getCapacity)
                 .sum();
     }
 
@@ -97,6 +115,7 @@ public class ComputerComponents {
     public List<CPUComponent> getCpus() { return Collections.unmodifiableList(cpus); }
     public List<GPUComponent> getGpus() { return Collections.unmodifiableList(gpus); }
     public List<RAMComponent> getRams() { return Collections.unmodifiableList(rams); }
-    public List<HDDComponent> getHdds() { return Collections.unmodifiableList(hdds); }
+    public List<HDDItemComponent> getHddItems() { return Collections.unmodifiableList(hddItems); }
+    public List<HDDFluidComponent> getHddFluids() { return Collections.unmodifiableList(hddFluids); }
     public Motherboard getMotherboard() { return motherboard; }
 }

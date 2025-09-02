@@ -1,18 +1,17 @@
 package net.jota.computers_and_networks.item.custom.components;
 
 import net.jota.computers_and_networks.item.custom.enums.ComponentTier;
-import net.jota.computers_and_networks.item.custom.interfaces.ComputerComponent;
+import net.jota.computers_and_networks.item.custom.interfaces.IComputerComponent;
 
-public class CPUComponent implements ComputerComponent {
+public class CPUComponent implements IComputerComponent {
     private final ComponentTier tier;
     private final int baseUploadSpeed;
     private final int baseDownloadSpeed;
 
     public CPUComponent(ComponentTier tier) {
         this.tier = tier;
-        // Velocidade base por tick (pode ser ajustada conforme balanceamento)
-        this.baseUploadSpeed = 4 * tier.getBaseSpeed(); // 4, 8, 16, 32 itens/tick
-        this.baseDownloadSpeed = 4 * tier.getBaseSpeed(); // 4, 8, 16, 32 itens/tick
+        this.baseUploadSpeed = 4 * tier.getBaseSpeed(); // 4, 8, 16, 32 items/tick
+        this.baseDownloadSpeed = 4 * tier.getBaseSpeed(); // 4, 8, 16, 32 items/tick
     }
 
     public int getUploadSpeed() { return baseUploadSpeed; }

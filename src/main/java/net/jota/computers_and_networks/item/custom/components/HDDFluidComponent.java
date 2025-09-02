@@ -4,19 +4,19 @@ import net.jota.computers_and_networks.item.custom.enums.ComponentTier;
 import net.jota.computers_and_networks.item.custom.enums.ComponentType;
 import net.jota.computers_and_networks.item.custom.interfaces.IComputerComponent;
 
-public class GPUComponent implements IComputerComponent {
+public class HDDFluidComponent implements IComputerComponent {
     private final ComponentTier tier;
-    private final float performanceMultiplier;
+    private final int capacity; // MB(Milibuckets)
 
-    public GPUComponent(ComponentTier tier) {
+    public HDDFluidComponent(ComponentTier tier) {
         this.tier = tier;
-        this.performanceMultiplier = 1.0f + (tier.getBaseSpeed() * 0.5f); // 1.5x, 2.0x, 3.0x, 5.0x
+        this.capacity = tier.getBaseSpeed() * 64000; // 64,000MB, 128,000MB, etc
     }
 
-    public float getPerformanceMultiplier() { return performanceMultiplier; }
+    public int getCapacity() { return capacity; }
 
     @Override
     public ComponentTier getTier() { return tier; }
     @Override
-    public String getType() { return ComponentType.GPU.getName(); }
+    public String getType() { return ComponentType.HDD_FLUID.getName(); }
 }

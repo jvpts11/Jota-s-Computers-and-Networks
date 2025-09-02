@@ -2,9 +2,9 @@ package net.jota.computers_and_networks.item.custom.components;
 
 import net.jota.computers_and_networks.item.custom.enums.ComponentTier;
 import net.jota.computers_and_networks.item.custom.enums.ComponentType;
-import net.jota.computers_and_networks.item.custom.interfaces.ComputerComponent;
+import net.jota.computers_and_networks.item.custom.interfaces.IComputerComponent;
 
-public class RAMComponent implements ComputerComponent {
+public class RAMComponent implements IComputerComponent {
     private final ComponentTier tier;
     private final int capacityMB;
 

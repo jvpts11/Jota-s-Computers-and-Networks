@@ -20,7 +20,6 @@ public class MainframeComputer extends NetworkComputer {
     }
 
     private boolean hasMinimumComponents() {
-        // Mainframe requer pelo menos 1 CPU, 1 RAM, 1 GPU e motherboard
         return !getComponents().getCpus().isEmpty() &&
                 !getComponents().getRams().isEmpty() &&
                 !getComponents().getGpus().isEmpty() &&

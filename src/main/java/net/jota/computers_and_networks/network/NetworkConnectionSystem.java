@@ -48,13 +48,11 @@ public class NetworkConnectionSystem {
             BlockPos current = toVisit.poll();
             visited.add(current);
 
-            // Verifica se esta posição é um cabo com rede
             Optional<NetworkCable> cable = cableManager.getCable(current);
             if (cable.isPresent() && cable.get().getNetworkId().isPresent()) {
                 return cable.get().getNetworkId();
             }
 
-            // Verifica se esta posição é um computador já conectado
             NetworkComputer computer = computerBlocks.get(current);
             if (computer != null && computer.getNetworkId() != null) {
                 return Optional.of(computer.getNetworkId());
