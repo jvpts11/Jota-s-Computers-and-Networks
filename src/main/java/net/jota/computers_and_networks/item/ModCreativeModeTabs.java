@@ -26,7 +26,9 @@ public class ModCreativeModeTabs {
                             output.accept(ModItems.CPU);
                             output.accept(ModItems.MEMORY);
                             output.accept(ModItems.HARD_DRIVE);
-                            output.accept(ModItems.MOTHERBOARD);
+                            output.accept(ModItems.MAINFRAME_MOTHERBOARD);
+                            output.accept(ModItems.SERVER_MOTHERBOARD);
+                            output.accept(ModItems.PERSONAL_COMPUTER_MOTHERBOARD);
                         })
                         .build()
     );
@@ -35,7 +37,7 @@ public class ModCreativeModeTabs {
             "computers_and_networks_devices_tab",
             () -> CreativeModeTab
                     .builder()
-                    .icon(() -> new ItemStack(ModItems.CPU.get()))
+                    .icon(() -> new ItemStack(ModBlocks.MAINFRAME_BLOCK.get()))
                     .title(Component.translatable("creativetab.computers_and_networks.devices"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ModBlocks.MAINFRAME_BLOCK);

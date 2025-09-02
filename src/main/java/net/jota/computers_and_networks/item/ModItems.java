@@ -19,7 +19,13 @@ public class ModItems {
     public static final DeferredItem<Item> HARD_DRIVE = ITEMS.register("hard_drive",
             () -> new Item(new Item.Properties()));
 
-    public static final DeferredItem<Item> MOTHERBOARD = ITEMS.register("motherboard",
+    public static final DeferredItem<Item> MAINFRAME_MOTHERBOARD = ITEMS.register("mainframe_motherboard",
+            () -> new Item(new Item.Properties()));
+
+    public static final DeferredItem<Item> SERVER_MOTHERBOARD = ITEMS.register("server_motherboard",
+            () -> new Item(new Item.Properties()));
+
+    public static final DeferredItem<Item> PERSONAL_COMPUTER_MOTHERBOARD = ITEMS.register("personal_computer_motherboard",
             () -> new Item(new Item.Properties()));
 
     public static void register(IEventBus eventBus){
