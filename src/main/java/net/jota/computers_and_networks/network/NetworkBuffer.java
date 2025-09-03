@@ -4,6 +4,7 @@ import net.jota.computers_and_networks.network.computers.ServerComputer;
 import net.jota.computers_and_networks.network.enums.OperationStatus;
 import net.jota.computers_and_networks.network.enums.OperationType;
 import net.jota.computers_and_networks.network.enums.ResourceType;
+import net.jota.computers_and_networks.network.interfaces.NetworkDevice;
 import net.jota.computers_and_networks.network.network_logic.interfaces.IFluidHandlerDestination;
 import net.jota.computers_and_networks.network.network_logic.interfaces.IFluidHandlerSource;
 import net.minecraft.world.item.ItemStack;
@@ -42,9 +43,10 @@ public class NetworkBuffer {
     }
 
     private void processOperationQueue(LogisticNetwork network) {
-        NetworkComputer mainframe = network.getMainframe().orElse(null);
-        if (mainframe == null) return;
+        var mainframeOpt = network.getMainframe();
+        if (mainframeOpt.isEmpty()) return;
 
+        NetworkComputer mainframe = mainframeOpt.get();
         int maxOperationsPerTick = mainframe.getUploadSpeed();
         int processed = 0;
 
@@ -88,11 +90,11 @@ public class NetworkBuffer {
     private void processItemTransfer(BufferResource buffer, LogisticNetwork network, int transferRate) {
         int amountToTransfer = Math.min(buffer.getRemainingAmount(), transferRate);
 
-        NetworkComputer sourceComputer = network.getComputers().get(buffer.getResource().getSource());
-        NetworkComputer destComputer = network.getComputers().get(buffer.getResource().getDestination());
+        NetworkDevice sourceDevice = network.getDevices().get(buffer.getResource().getSource());
+        NetworkDevice destDevice = network.getDevices().get(buffer.getResource().getDestination());
 
-        if (sourceComputer instanceof ServerComputer itemSource &&
-                destComputer instanceof ServerComputer itemDest) {
+        if (sourceDevice instanceof ServerComputer itemSource &&
+                destDevice instanceof ServerComputer itemDest) {
 
             ItemStack itemToTransfer = buffer.getItemStack();
             itemToTransfer.setCount(amountToTransfer);
@@ -121,9 +123,7 @@ public class NetworkBuffer {
             Map.Entry<UUID, BufferResource> entry = iterator.next();
             if (entry.getValue().isTransferComplete()) {
                 iterator.remove();
-
-                // TODO: Notify the operation was completed
-                System.out.println("Operation completed: " + entry.getKey());
+                System.out.println("Transfer completed: " + entry.getKey());
             }
         }
     }
@@ -132,11 +132,11 @@ public class NetworkBuffer {
         FluidStack fluidToTransfer = buffer.getFluidStack();
         int amountToTransfer = Math.min(fluidToTransfer.getAmount(), transferRate);
 
-        NetworkComputer sourceComputer = network.getComputers().get(buffer.getResource().getSource());
-        NetworkComputer destComputer = network.getComputers().get(buffer.getResource().getDestination());
+        NetworkDevice sourceDevice = network.getDevices().get(buffer.getResource().getSource());
+        NetworkDevice destDevice = network.getDevices().get(buffer.getResource().getDestination());
 
-        if (sourceComputer instanceof IFluidHandlerSource fluidSource &&
-                destComputer instanceof IFluidHandlerDestination fluidDest) {
+        if (sourceDevice instanceof IFluidHandlerSource fluidSource &&
+                destDevice instanceof IFluidHandlerDestination fluidDest) {
 
             FluidStack extracted = fluidSource.extractFluid(fluidToTransfer, amountToTransfer, true);
             if (extracted.getAmount() >= amountToTransfer) {

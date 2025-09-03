@@ -4,10 +4,6 @@ public enum ComponentType {
     CPU("cpu"),
     GPU("gpu"),
     RAM("ram"),
-    HDD_ITEM("hdd_item"),
-    HDD_FLUID("hdd_fluid"),
-    SSD_ITEM("ssd_item"),
-    SSD_FLUID("ssd_fluid"),
     MOTHERBOARD("motherboard");
 
     private final String name;

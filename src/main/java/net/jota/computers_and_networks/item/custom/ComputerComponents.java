@@ -51,19 +51,6 @@ public class ComputerComponents {
                     return true;
                 }
                 break;
-            case HDD_ITEM:
-                if (hddItems.size() < motherboard.getTotalSlots(ComponentType.HDD_ITEM)) {
-                    hddItems.add((HDDItemComponent) component);
-                    return true;
-                }
-                break;
-            case HDD_FLUID:
-                if (hddFluids.size() < motherboard.getTotalSlots(ComponentType.HDD_FLUID)) {
-                    hddFluids.add((HDDFluidComponent) component);
-                    fluidTanks.add(new FluidTank(((HDDFluidComponent) component).getCapacity()));
-                    return true;
-                }
-                break;
         }
         return false;
     }

@@ -30,6 +30,10 @@ public class ServerComputer extends NetworkComputer implements IFluidHandlerSour
         initializeFluidTanks();
     }
 
+    public int getItemStorageCapacity() {
+        return getStorage().getTotalItemCapacity();
+    }
+
     @Override
     public boolean canJoinNetwork(LogisticNetwork network) {
         if (!network.isValid()) return false;
@@ -40,20 +44,20 @@ public class ServerComputer extends NetworkComputer implements IFluidHandlerSour
     private boolean hasMinimumComponents() {
         return !getComponents().getCpus().isEmpty() &&
                 !getComponents().getRams().isEmpty() &&
-                !getComponents().getHddItems().isEmpty() &&
+                !getStorage().getStorageDevices().isEmpty() && // Verifica se tem dispositivos de storage
                 getComponents().getMotherboard() != null;
     }
 
     @Override
     public void onNetworkJoin(LogisticNetwork network) {
-        this.networkId = network.getId();
+        setNetworkId(network.getId());
         System.out.println("Server Connected to Network: " + network.getId());
     }
 
     @Override
     public void onNetworkLeave() {
-        System.out.println("Server Disconnected from Network: " + networkId);
-        this.networkId = null;
+        System.out.println("Server Disconnected from Network: " + getNetworkId());
+        setNetworkId(null);
     }
 
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
@@ -94,9 +98,11 @@ public class ServerComputer extends NetworkComputer implements IFluidHandlerSour
 
     private void initializeFluidTanks() {
         fluidTanks.clear();
-        getComponents().getHddFluids().forEach(hddFluid -> {
-            fluidTanks.add(new FluidTank(hddFluid.getCapacity()));
-        });
+        getStorage().getStorageDevices().stream()
+                .filter(device -> device.getType().toString().contains("FLUID"))
+                .forEach(device -> {
+                    fluidTanks.add(new FluidTank(device.getCapacity()));
+                });
     }
 
     @Override
@@ -222,14 +228,19 @@ public class ServerComputer extends NetworkComputer implements IFluidHandlerSour
     }
 
     public void refreshStorage() {
-        itemStorage.setSize(getItemStorageCapacity());
+        int newCapacity = getItemStorageCapacity();
+        if (newCapacity != itemStorage.getSlots()) {
+            ItemStackHandler newStorage = new ItemStackHandler(newCapacity);
+            for (int i = 0; i < Math.min(itemStorage.getSlots(), newCapacity); i++) {
+                newStorage.setStackInSlot(i, itemStorage.getStackInSlot(i));
+            }
+            // TODO: We cant directly substitute the item, i must find a solution later on
+        }
 
         initializeFluidTanks();
     }
 
     private int getFluidCapacity() {
-        return getComponents().getHddFluids().stream()
-                .mapToInt(hdd -> hdd.getTier().getBaseSpeed() * 1000)
-                .sum();
+        return getStorage().getTotalFluidCapacity();
     }
 }

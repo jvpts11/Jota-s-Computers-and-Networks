@@ -22,27 +22,23 @@ public class Motherboard implements IComputerComponent {
     }
 
     private void initializeSlots() {
+        // APENAS componentes de processamento na placa-mãe
+        // HDDs/SSDs são instalados diretamente no computador
         switch (supportedComputerType) {
             case MAINFRAME:
                 componentSlots.put(ComponentType.CPU, 4);
                 componentSlots.put(ComponentType.RAM, 16);
                 componentSlots.put(ComponentType.GPU, 2);
-                componentSlots.put(ComponentType.HDD_ITEM, 8);
-                componentSlots.put(ComponentType.HDD_FLUID, 8);
                 break;
             case SERVER:
                 componentSlots.put(ComponentType.CPU, 6);
                 componentSlots.put(ComponentType.RAM, 32);
                 componentSlots.put(ComponentType.GPU, 4);
-                componentSlots.put(ComponentType.HDD_ITEM, 12);
-                componentSlots.put(ComponentType.HDD_FLUID, 12);
                 break;
             case PERSONAL_COMPUTER:
                 componentSlots.put(ComponentType.CPU, 1);
                 componentSlots.put(ComponentType.RAM, 4);
                 componentSlots.put(ComponentType.GPU, 2);
-                componentSlots.put(ComponentType.HDD_ITEM, 2);
-                componentSlots.put(ComponentType.HDD_FLUID, 2);
                 break;
         }
 
@@ -52,8 +48,17 @@ public class Motherboard implements IComputerComponent {
     }
 
     public boolean installComponent(IComputerComponent component) {
-        ComponentType type = ComponentType.valueOf(component.getType().toUpperCase());
+        ComponentType type;
+        try {
+            type = ComponentType.valueOf(component.getType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return false; // Tipo de componente não suportado na placa-mãe
+        }
+
         List<IComputerComponent> components = installedComponents.get(type);
+        if (components == null) {
+            return false; // Tipo não suportado por esta placa-mãe
+        }
 
         if (components.size() < componentSlots.get(type)) {
             components.add(component);
@@ -63,20 +68,27 @@ public class Motherboard implements IComputerComponent {
     }
 
     public boolean removeComponent(IComputerComponent component) {
-        ComponentType type = ComponentType.valueOf(component.getType().toUpperCase());
-        return installedComponents.get(type).remove(component);
+        ComponentType type;
+        try {
+            type = ComponentType.valueOf(component.getType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        List<IComputerComponent> components = installedComponents.get(type);
+        return components != null && components.remove(component);
     }
 
     public List<IComputerComponent> getComponents(ComponentType type) {
-        return Collections.unmodifiableList(installedComponents.get(type));
+        return Collections.unmodifiableList(installedComponents.getOrDefault(type, new ArrayList<>()));
     }
 
     public int getAvailableSlots(ComponentType type) {
-        return componentSlots.get(type) - installedComponents.get(type).size();
+        return componentSlots.getOrDefault(type, 0) - installedComponents.getOrDefault(type, new ArrayList<>()).size();
     }
 
     public int getTotalSlots(ComponentType type) {
-        return componentSlots.get(type);
+        return componentSlots.getOrDefault(type, 0);
     }
 
     @Override

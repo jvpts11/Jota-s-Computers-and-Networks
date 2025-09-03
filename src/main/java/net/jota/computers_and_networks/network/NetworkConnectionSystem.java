@@ -1,6 +1,7 @@
 package net.jota.computers_and_networks.network;
 
 import net.jota.computers_and_networks.block.custom.CableManager;
+import net.jota.computers_and_networks.network.interfaces.NetworkDevice;
 import net.minecraft.core.BlockPos;
 
 import java.util.*;
@@ -8,32 +9,37 @@ import java.util.*;
 public class NetworkConnectionSystem {
     private final CableManager cableManager;
     private final NetworkManager networkManager;
-    private final Map<BlockPos, NetworkComputer> computerBlocks;
+    private final Map<BlockPos, NetworkDevice> networkDevices;
 
     public NetworkConnectionSystem(CableManager cableManager, NetworkManager networkManager) {
         this.cableManager = cableManager;
         this.networkManager = networkManager;
-        this.computerBlocks = new HashMap<>();
+        this.networkDevices = new HashMap<>();
     }
 
-    public boolean connectComputerToNetwork(BlockPos computerPos, NetworkComputer computer) {
-        computerBlocks.put(computerPos, computer);
+    public boolean connectDeviceToNetwork(BlockPos devicePos, NetworkDevice device) {
+        networkDevices.put(devicePos, device);
 
-        Optional<UUID> networkId = findNetworkThroughCables(computerPos);
+        Optional<UUID> networkId = findNetworkThroughCables(devicePos);
 
         if (networkId.isPresent()) {
-            LogisticNetwork network = networkManager.getNetwork(networkId.get()).orElse(null);
-            if (network != null && computer.canJoinNetwork(network)) {
-                return networkManager.connectComputer(computerPos, computer, network);
+            Optional<LogisticNetwork> networkOpt = networkManager.getNetwork(networkId.get());
+            if (networkOpt.isPresent() && device.canJoinNetwork(networkOpt.get())) {
+                return networkManager.connectDevice(devicePos, device, networkOpt.get());
+            }
+        } else {
+            Optional<LogisticNetwork> newNetwork = networkManager.createNetwork();
+            if (newNetwork.isPresent() && device.canJoinNetwork(newNetwork.get())) {
+                return networkManager.connectDevice(devicePos, device, newNetwork.get());
             }
         }
         return false;
     }
 
-    public boolean disconnectComputer(BlockPos computerPos) {
-        NetworkComputer removed = computerBlocks.remove(computerPos);
+    public boolean disconnectDevice(BlockPos devicePos) {
+        NetworkDevice removed = networkDevices.remove(devicePos);
         if (removed != null) {
-            networkManager.disconnectComputer(computerPos);
+            networkManager.disconnectDevice(devicePos);
             return true;
         }
         return false;
@@ -46,22 +52,25 @@ public class NetworkConnectionSystem {
 
         while (!toVisit.isEmpty()) {
             BlockPos current = toVisit.poll();
+
+            if (visited.contains(current)) continue;
             visited.add(current);
 
             Optional<NetworkCable> cable = cableManager.getCable(current);
-            if (cable.isPresent() && cable.get().getNetworkId().isPresent()) {
-                return cable.get().getNetworkId();
-            }
-
-            NetworkComputer computer = computerBlocks.get(current);
-            if (computer != null && computer.getNetworkId() != null) {
-                return Optional.of(computer.getNetworkId());
-            }
-
             if (cable.isPresent()) {
+                Optional<UUID> cableNetworkId = cable.get().getNetworkId();
+                if (cableNetworkId.isPresent()) {
+                    return cableNetworkId;
+                }
+
                 cable.get().getConnections().stream()
                         .filter(pos -> !visited.contains(pos))
                         .forEach(toVisit::add);
+            }
+
+            NetworkDevice device = networkDevices.get(current);
+            if (device != null && device.getNetworkId() != null) {
+                return Optional.of(device.getNetworkId());
             }
         }
 
@@ -69,14 +78,52 @@ public class NetworkConnectionSystem {
     }
 
     public void updateNetworkConnections() {
-        computerBlocks.forEach((pos, computer) -> {
-            if (computer.getNetworkId() == null) {
-                connectComputerToNetwork(pos, computer);
+        networkDevices.forEach((pos, device) -> {
+            if (device.getNetworkId() == null) {
+                connectDeviceToNetwork(pos, device);
             }
         });
     }
 
-    public Optional<NetworkComputer> getComputerAt(BlockPos pos) {
-        return Optional.ofNullable(computerBlocks.get(pos));
+    public Optional<NetworkDevice> getDeviceAt(BlockPos pos) {
+        return Optional.ofNullable(networkDevices.get(pos));
+    }
+
+    public void onCableNetworkChanged(BlockPos cablePos, UUID newNetworkId) {
+        networkDevices.keySet().stream()
+                .filter(devicePos -> isDeviceConnectedToCable(devicePos, cablePos))
+                .forEach(devicePos -> {
+                    NetworkDevice device = networkDevices.get(devicePos);
+                    if (device != null) {
+                        disconnectDevice(devicePos);
+                        connectDeviceToNetwork(devicePos, device);
+                    }
+                });
+    }
+
+    private boolean isDeviceConnectedToCable(BlockPos devicePos, BlockPos cablePos) {
+        Set<BlockPos> visited = new HashSet<>();
+        Queue<BlockPos> toVisit = new LinkedList<>();
+        toVisit.add(devicePos);
+
+        while (!toVisit.isEmpty()) {
+            BlockPos current = toVisit.poll();
+
+            if (visited.contains(current)) continue;
+            visited.add(current);
+
+            if (current.equals(cablePos)) {
+                return true;
+            }
+
+            Optional<NetworkCable> cable = cableManager.getCable(current);
+            if (cable.isPresent()) {
+                cable.get().getConnections().stream()
+                        .filter(pos -> !visited.contains(pos))
+                        .forEach(toVisit::add);
+            }
+        }
+
+        return false;
     }
 }

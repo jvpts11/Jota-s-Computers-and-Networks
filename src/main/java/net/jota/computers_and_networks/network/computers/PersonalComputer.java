@@ -17,7 +17,6 @@ public class PersonalComputer extends NetworkComputer {
     @Override
     public boolean canJoinNetwork(LogisticNetwork network) {
         if (!network.isValid()) return false;
-
         return hasMinimumComponents();
     }
 
@@ -29,14 +28,14 @@ public class PersonalComputer extends NetworkComputer {
 
     @Override
     public void onNetworkJoin(LogisticNetwork network) {
-        this.networkId = network.getId();
+        setNetworkId(network.getId());
         System.out.println("PC connected to Network: " + network.getId());
     }
 
     @Override
     public void onNetworkLeave() {
-        System.out.println("PC disconnected from Network: " + networkId);
-        this.networkId = null;
+        System.out.println("PC disconnected from Network: " + getNetworkId());
+        setNetworkId(null);
     }
 
     public ItemStack getLocalStack(int slot) {

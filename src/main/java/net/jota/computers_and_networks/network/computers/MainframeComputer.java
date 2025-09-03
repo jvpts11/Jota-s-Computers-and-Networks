@@ -11,7 +11,9 @@ public class MainframeComputer extends NetworkComputer {
 
     @Override
     public boolean canJoinNetwork(LogisticNetwork network) {
-        boolean hasMainframe = network.getComputers().values().stream()
+        boolean hasMainframe = network.getDevices().values().stream()
+                .filter(device -> device instanceof NetworkComputer)
+                .map(device -> (NetworkComputer) device)
                 .anyMatch(comp -> comp.getType() == ComputerType.MAINFRAME);
 
         boolean hasMinimumComponents = hasMinimumComponents();
@@ -28,15 +30,15 @@ public class MainframeComputer extends NetworkComputer {
 
     @Override
     public void onNetworkJoin(LogisticNetwork network) {
-        this.networkId = network.getId();
+        setNetworkId(network.getId());
         network.updateNetworkValidity();
         System.out.println("Mainframe connected to Network: " + network.getId());
     }
 
     @Override
     public void onNetworkLeave() {
-        System.out.println("Mainframe disconnected from network: " + networkId);
-        this.networkId = null;
+        System.out.println("Mainframe disconnected from network: " + getNetworkId());
+        setNetworkId(null);
     }
 
     public int getNetworkProcessingPower() {
